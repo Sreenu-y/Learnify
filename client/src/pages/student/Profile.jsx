@@ -25,7 +25,7 @@ import { toast } from "sonner";
 const Profile = () => {
   const [name, setName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState("");
-  const { data, isLoading } = useLoadUserQuery();
+  const { data, isLoading, refetch } = useLoadUserQuery();
   const [
     updateUser,
     {
@@ -43,18 +43,23 @@ const Profile = () => {
       setProfilePhoto(file);
     }
   };
+
+  useEffect(() => {
+    refetch();
+  }, []);
+
   useEffect(() => {
     if (isSuccess) {
       toast.success(updateUserData.message || "Profile updated");
+      refetch();
     }
     if (isError) {
-      toast.error(error.data.message || "Failed to update");
+      toast.error(error?.data?.message || "Failed to update");
     }
-  }, [updateUserData, isError, error, isSuccess]);
-  // console.log(data);
+  }, [updateUserData, isError, refetch, error, isSuccess]);
 
   if (isLoading) return <ProfileSkeleton />;
-  const { user } = data;
+  const user = data && data.user;
 
   const updateUserHandler = async () => {
     const formData = new FormData();
@@ -70,7 +75,7 @@ const Profile = () => {
         <div className="flex flex-col items-center">
           <Avatar className="h-24 w-24 md:h-32 md:w-32 mb-4">
             <AvatarImage
-              src={user.photoUrl || "https://github.com/shadcn.png"}
+              src={user?.photoUrl || "https://github.com/shadcn.png"}
               alt="@shadcn"
             />
             <AvatarFallback>CN</AvatarFallback>
@@ -139,21 +144,19 @@ const Profile = () => {
                   </div>
                 </div>
                 <DialogFooter>
-                  <DialogClose asChild>
-                    <Button
-                      disabled={updateUserIsLoading}
-                      onClick={updateUserHandler}
-                    >
-                      {updateUserIsLoading ? (
-                        <>
-                          <Loader2 className="mr-1 animate-spin h-4 w-4" />{" "}
-                          please wait
-                        </>
-                      ) : (
-                        "Save changes"
-                      )}
-                    </Button>
-                  </DialogClose>
+                  <Button
+                    disabled={updateUserIsLoading}
+                    onClick={updateUserHandler}
+                  >
+                    {updateUserIsLoading ? (
+                      <>
+                        <Loader2 className="mr-1 animate-spin h-4 w-4" /> please
+                        wait
+                      </>
+                    ) : (
+                      "Save changes"
+                    )}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </form>
