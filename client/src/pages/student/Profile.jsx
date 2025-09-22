@@ -43,7 +43,15 @@ const Profile = () => {
       setProfilePhoto(file);
     }
   };
-  console.log(data);
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success(updateUserData.message || "Profile updated");
+    }
+    if (isError) {
+      toast.error(error.data.message || "Failed to update");
+    }
+  }, [updateUserData, isError, error, isSuccess]);
+  // console.log(data);
 
   if (isLoading) return <ProfileSkeleton />;
   const { user } = data;
@@ -54,15 +62,6 @@ const Profile = () => {
     formData.append("profilePhoto", profilePhoto);
     await updateUser(formData);
   };
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success(updateUserData.message || "Profile updated");
-    }
-    if (isError) {
-      toast.error(error.data.message || "Failed to update");
-    }
-  }, [updateUserData, isError, error, isSuccess]);
 
   return (
     <div className="max-w-4xl mx-auto my-24 px-4">
