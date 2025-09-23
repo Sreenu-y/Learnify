@@ -4,6 +4,7 @@ import connectDB from "./database/db.js";
 import userRouter from "./routes/user.route.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import courseRouter from "./routes/course.route.js";
 
 dotenv.config({});
 connectDB();
@@ -23,6 +24,7 @@ app.use(
 );
 
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/course", courseRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is Listening to the PORT: ${PORT}`);
