@@ -10,8 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
-import { useEditLectureMutation } from "@/features/api/courseApi";
+import {
+  useEditLectureMutation,
+  useGetLectureByIdQuery,
+  useRemoveLectureMutation,
+} from "@/features/api/courseApi";
 import axios from "axios";
+import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -30,6 +35,19 @@ const LectureTab = () => {
 
   const [editLecture, { data, isError, isLoading, isSuccess, error }] =
     useEditLectureMutation();
+
+  const [
+    removeLecture,
+    {
+      data: removeLectureData,
+      isLoading: removeLectureIsLoading,
+      isSuccess: removeLectureIsSuccess,
+      isError: removeLectureIsError,
+      error: removeLectureError,
+    },
+  ] = useRemoveLectureMutation();
+
+  const { data: getLectureByIdData } = useGetLectureByIdQuery(lectureId);
 
   const fileChangeHandler = async (e) => {
     const file = e.target.files[0];
@@ -71,6 +89,30 @@ const LectureTab = () => {
     }
   }, [data, isSuccess, isError]);
 
+  useEffect(() => {
+    if (removeLectureIsSuccess) {
+      toast.success(
+        removeLectureData.message || "Lecture removed successfully"
+      );
+      navigate(`/admin/course/${courseId}/lecture`);
+    }
+    if (removeLectureIsError) {
+      toast.error(removeLectureError?.data?.message || "Failed to remove");
+    }
+  }, [removeLectureData, removeLectureIsSuccess, removeLectureIsError]);
+
+  useEffect(() => {
+    console.log("Fetched lecture:", getLectureByIdData);
+    if (getLectureByIdData) {
+      setLectureTitle(getLectureByIdData.lecture.lectureTitle);
+      setIsFree(getLectureByIdData.lecture.isPreviewFree);
+    }
+  }, [getLectureByIdData]);
+
+  const removeLectureHandler = async () => {
+    await removeLecture(lectureId);
+  };
+
   const lectureUpdateHandler = async () => {
     await editLecture({
       lectureTitle,
@@ -91,7 +133,19 @@ const LectureTab = () => {
           </CardDescription>
         </div>
         <div>
-          <Button variant="destructive">Remove Lecture</Button>
+          <Button
+            variant="destructive"
+            disabled={removeLectureIsLoading}
+            onClick={removeLectureHandler}
+          >
+            {removeLectureIsLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+              </>
+            ) : (
+              "Remove Lecture"
+            )}
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -116,7 +170,7 @@ const LectureTab = () => {
           />
         </div>
         <div className="flex items-center space-x-2">
-          <Switch id="video" />
+          <Switch id="video" checked={isFree} onCheckedChange={setIsFree} />
           <Label htmlFor="video">Is this Video free</Label>
         </div>
         {mediaProgress && (
@@ -126,8 +180,18 @@ const LectureTab = () => {
           </div>
         )}
         <div className="mt-4">
-          <Button className="bg-gray-700" onClick={lectureUpdateHandler}>
-            Update Lecture
+          <Button
+            className="bg-gray-700"
+            onClick={lectureUpdateHandler}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+              </>
+            ) : (
+              "Update Lecture"
+            )}
           </Button>
         </div>
       </CardContent>

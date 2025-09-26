@@ -26,7 +26,7 @@ router.route("/:courseId/lecture").get(isAuthenticated, getLecturesOfCourse);
 router
   .route("/:courseId/lecture/:lectureId")
   .post(isAuthenticated, editLecture);
-router.route("/:courseId/lecture").delete(isAuthenticated, removeLecture);
-router.route("/:courseId/lecture").get(isAuthenticated, getLectureById);
+router.route("/lecture/:lectureId").delete(isAuthenticated, removeLecture);
+router.route("/lecture/:lectureId").get(isAuthenticated, getLectureById);
 
 export default router;

@@ -68,10 +68,17 @@ export const courseApi = createApi({
       }),
       invalidatesTags: ["Refetch_Lectures"],
     }),
-    removeLecture: builder.query({
-      query: () => ({
-        url: "/:courseId/lecture",
+    removeLecture: builder.mutation({
+      query: (lectureId) => ({
+        url: `/lecture/${lectureId}`,
         method: "DELETE",
+      }),
+      invalidatesTags: ["Refetch_Lectures"],
+    }),
+    getLectureById: builder.query({
+      query: (lectureId) => ({
+        url: `/lecture/${lectureId}`,
+        method: "GET",
       }),
     }),
   }),
@@ -85,4 +92,6 @@ export const {
   useCreateLectureMutation,
   useGetCourseLectureQuery,
   useEditLectureMutation,
+  useRemoveLectureMutation,
+  useGetLectureByIdQuery,
 } = courseApi;
