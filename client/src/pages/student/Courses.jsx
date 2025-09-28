@@ -1,11 +1,14 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import React from "react";
 import Course from "./Course";
-import { Turtle } from "lucide-react";
+import {
+  useGetPublishedCoursesQuery,
+  usePublishCourseMutation,
+} from "@/features/api/courseApi";
 
 const Courses = () => {
-  const isLoading = false;
-
+  const { data, isLoading, isError } = useGetPublishedCoursesQuery();
+  if (isError) <h1>Error occurred..</h1>;
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
@@ -18,9 +21,10 @@ const Courses = () => {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 16 }).map((_, i) => (
-              <Course key={i} />
-            ))}
+            {data.courses &&
+              data.courses?.map((course, idx) => (
+                <Course key={idx} course={course} />
+              ))}
           </div>
         )}
       </div>

@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   useEditCourseMutation,
   useGetCourseByIdQuery,
+  usePublishCourseMutation,
 } from "@/features/api/courseApi";
 import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -28,8 +29,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const CourseTab = () => {
-  const isPublished = true;
-
   const navigate = useNavigate();
   const [input, setInput] = useState({
     courseTitle: "",
@@ -47,8 +46,13 @@ const CourseTab = () => {
 
   const params = useParams();
   const courseId = params.courseId;
-  const { data: CourseData, isLoading: courseDataIsLoading } =
-    useGetCourseByIdQuery(courseId, { refetchOnMountOrArgChange: true });
+  const {
+    data: CourseData,
+    isLoading: courseDataIsLoading,
+    refetch,
+  } = useGetCourseByIdQuery(courseId, { refetchOnMountOrArgChange: true });
+
+  const [publishCourse, {}] = usePublishCourseMutation();
 
   useEffect(() => {
     const course = CourseData?.course;
@@ -91,6 +95,20 @@ const CourseTab = () => {
     }
   };
 
+  const publishStatusHandler = async (action) => {
+    try {
+      const response = await publishCourse({ courseId, query: action });
+      if (response.data) {
+        refetch();
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(
+        `Failed to ${action === "true" ? "Publish" : "Unpublish"} Course`
+      );
+    }
+  };
+
   useEffect(() => {
     if (isSuccess) {
       toast.success(data?.message || "Course Edited Successfully");
@@ -127,8 +145,16 @@ const CourseTab = () => {
           </CardDescription>
         </div>
         <div className="space-x-2">
-          <Button variant="outline">
-            {isPublished ? "Unpublish" : "Publish"}
+          <Button
+            variant="outline"
+            disabled={CourseData?.course?.lectures.length === 0}
+            onClick={() =>
+              publishStatusHandler(
+                CourseData?.course?.isPublished ? "false" : "true"
+              )
+            }
+          >
+            {CourseData?.course?.isPublished ? "Unpublish" : "Publish"}
           </Button>
           <Button>Remove Course</Button>
         </div>
