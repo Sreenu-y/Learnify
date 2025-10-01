@@ -59,8 +59,9 @@ export const getPublishedCourses = async (_, res) => {
       path: "creator",
       select: "name photoUrl",
     });
-    if (!courses) {
+    if (!courses || courses.length === 0) {
       res.status(404).json({
+        courses: [],
         message: "Course not found",
       });
     }

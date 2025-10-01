@@ -21,7 +21,7 @@ const coursePurchaseSchema = new mongoose.Schema(
       enum: ["Pending", "Completed", "Failed"],
       default: "Pending",
     },
-    payment: {
+    paymentId: {
       type: String,
       required: true,
     },
