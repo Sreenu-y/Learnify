@@ -30,6 +30,7 @@
     "quill": "^2.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-player": "^3.3.3",
     "react-quilljs": "^2.0.5",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.1",

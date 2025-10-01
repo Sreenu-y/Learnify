@@ -1,14 +1,22 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import React from "react";
 import Course from "./Course";
-import {
-  useGetPublishedCoursesQuery,
-  usePublishCourseMutation,
-} from "@/features/api/courseApi";
+import { useGetPublishedCoursesQuery } from "@/features/api/courseApi";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Courses = () => {
+  const navigate = useNavigate();
   const { data, isLoading, isError } = useGetPublishedCoursesQuery();
   if (isError) <h1>Error occurred..</h1>;
+  if (isError || !data || !data.courses)
+    return (
+      <div className="mt-10 font-bold text-xl ml-10">
+        <Button variant="outline" onClick={() => navigate("/login")}>
+          <h1>Login to explore courses...</h1>
+        </Button>
+      </div>
+    );
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
@@ -21,8 +29,8 @@ const Courses = () => {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {data.courses &&
-              data.courses?.map((course, idx) => (
+            {data?.courses &&
+              data?.courses?.map((course, idx) => (
                 <Course key={idx} course={course} />
               ))}
           </div>
