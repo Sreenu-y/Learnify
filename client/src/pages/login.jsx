@@ -113,7 +113,7 @@ const Login = () => {
                     name="name"
                     value={signupInput.name}
                     onChange={(e) => changeInputHandler(e, "signup")}
-                    placeholder="Eg. sree"
+                    placeholder="Eg. Bhanu"
                     required={true}
                   />
                 </div>
