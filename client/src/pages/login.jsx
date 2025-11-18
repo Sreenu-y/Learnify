@@ -123,7 +123,7 @@ const Login = () => {
                     type="email"
                     name="email"
                     value={signupInput.email}
-                    placeholder="Eg. sree@gmail.com"
+                    placeholder="Eg. example@gmail.com"
                     onChange={(e) => changeInputHandler(e, "signup")}
                     required={true}
                   />
@@ -135,7 +135,7 @@ const Login = () => {
                     name="password"
                     value={signupInput.password}
                     onChange={(e) => changeInputHandler(e, "signup")}
-                    placeholder="Eg. sree@41280"
+                    placeholder="Eg. example@123"
                     required={true}
                   />
                 </div>
