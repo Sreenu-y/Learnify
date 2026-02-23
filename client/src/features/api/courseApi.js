@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const COURSE_API = "https://learnify-1-263m.onrender.com/api/v1/course";
+const COURSE_API = "http://localhost:8080/api/v1/course";
 
 export const courseApi = createApi({
   reducerPath: "courseApi",
@@ -91,7 +91,7 @@ export const courseApi = createApi({
         lectureId,
       }) => ({
         url: `${courseId}/lecture/${lectureId}`,
-        method: "POST",
+        method: "PUT",
         body: { lectureTitle, videoInfo, isPreviewFree },
       }),
       invalidatesTags: ["Refetch_Lectures"],

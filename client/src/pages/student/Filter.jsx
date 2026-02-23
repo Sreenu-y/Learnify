@@ -10,80 +10,98 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import React, { useState } from "react";
+import { useState } from "react";
+
+const CATEGORIES = [
+  "Next JS",
+  "Data Science",
+  "Frontend Development",
+  "Fullstack Development",
+  "MERN Stack Development",
+  "Backend Development",
+  "Javascript",
+  "Python",
+  "Docker",
+  "MongoDB",
+  "HTML",
+];
 
 const Filter = ({ changeFilterHandler }) => {
-  const categories = [
-    { id: "Next JS", label: "Next JS" },
-    { id: "Data Science", label: "Data Science" },
-    { id: "Frontend Development", label: "Frontend Development" },
-    { id: "Fullstack Development", label: "Fullstack Development" },
-    { id: "MERN Stack Development", label: "MERN Stack Development" },
-    { id: "Backend Development", label: "Backend Development" },
-    { id: "Javascript", label: "Javascript" },
-    { id: "Python", label: "Python" },
-    { id: "Docker", label: "Docker" },
-    { id: "MongoDB", label: "MongoDB" },
-    { id: "HTML", label: "HTML" },
-  ];
-
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortByPrice, setSortByPrice] = useState("");
 
-  const categoryChangeHandler = (categoryId) => {
-    setSelectedCategories((previousCategories) => {
-      const newCategories = previousCategories.includes(categoryId)
-        ? previousCategories.filter((id) => id !== categoryId)
-        : [...previousCategories, categoryId];
-
-      changeFilterHandler(newCategories, sortByPrice);
-      return newCategories;
+  const categoryChangeHandler = (id) => {
+    setSelectedCategories((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((c) => c !== id)
+        : [...prev, id];
+      changeFilterHandler(next, sortByPrice);
+      return next;
     });
   };
 
-  const sortByPriceHandler = (selectedValue) => {
-    setSortByPrice(selectedValue);
-    changeFilterHandler(selectedCategories, selectedValue);
+  const sortByPriceHandler = (val) => {
+    setSortByPrice(val);
+    changeFilterHandler(selectedCategories, val);
   };
 
   return (
-    <div className="w-full md:w-[20%]">
-      <div className="flex items-center justify-between">
-        <h1 className="font-semibold text-lg md:text-xl mr-2">
-          Filter options
-        </h1>
+    <aside className="w-full md:w-56 shrink-0">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-semibold text-black dark:text-white">Filters</h2>
         <Select onValueChange={sortByPriceHandler}>
-          <SelectTrigger>
+          <SelectTrigger className="w-[120px] h-8 text-xs bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-black dark:text-white rounded-lg">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white dark:bg-[#101010] border-black/10 dark:border-white/10 text-black dark:text-white">
             <SelectGroup>
-              <SelectLabel>Sort by</SelectLabel>
-              <SelectItem value="low">Low to High</SelectItem>
-              <SelectItem value="high">High to low</SelectItem>
+              <SelectLabel className="text-black/40 dark:text-white/35 text-xs">
+                Price
+              </SelectLabel>
+              <SelectItem
+                value="low"
+                className="hover:bg-black/5 dark:hover:bg-white/5"
+              >
+                Low → High
+              </SelectItem>
+              <SelectItem
+                value="high"
+                className="hover:bg-black/5 dark:hover:bg-white/5"
+              >
+                High → Low
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
       </div>
-      <Separator className="my-4" />
+
+      <Separator className="bg-black/[0.07] dark:bg-white/[0.07] mb-4" />
+
       <div>
-        <h1 className="font-semibold mb-2">Category</h1>
-        {categories.map((category) => (
-          <div key={category.id} className="flex items-center space-x-2 my-2">
-            <Checkbox
-              id={category.id}
-              onCheckedChange={() => categoryChangeHandler(category.id)}
-            />
-            <Label
-              htmlFor={category.id}
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 "
-            >
-              {category.label}
-            </Label>
-          </div>
-        ))}
+        <h3 className="font-semibold text-sm text-black dark:text-white mb-3">
+          Category
+        </h3>
+        <div className="flex flex-col gap-2">
+          {CATEGORIES.map((cat) => (
+            <div key={cat} className="flex items-center gap-2">
+              <Checkbox
+                id={cat}
+                checked={selectedCategories.includes(cat)}
+                onCheckedChange={() => categoryChangeHandler(cat)}
+                className="border-black/20 dark:border-white/20 data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=checked]:text-white dark:data-[state=checked]:text-black"
+              />
+              <Label
+                htmlFor={cat}
+                className="text-sm text-black/70 dark:text-white/60 cursor-pointer"
+              >
+                {cat}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </aside>
   );
 };
 

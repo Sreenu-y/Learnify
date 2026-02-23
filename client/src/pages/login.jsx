@@ -1,14 +1,5 @@
-import { AppWindowIcon, CodeIcon, Loader2 } from "lucide-react";
-
+import { Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,7 +25,6 @@ const Login = () => {
       data: registerData,
       isLoading: registerIsLoading,
       isSuccess: registerIsSuccess,
-      isError: registerIsError,
       error: registerError,
     },
   ] = useRegisterUserMutation();
@@ -44,7 +34,6 @@ const Login = () => {
       data: loginData,
       isSuccess: loginIsSuccess,
       isLoading: loginIsLoading,
-      isError: loginIsError,
       error: loginError,
     },
   ] = useLoginUserMutation();
@@ -52,22 +41,18 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (registerIsSuccess && registerData) {
+    if (registerIsSuccess && registerData)
       toast.success(registerData.message || "Signup successful.");
-    }
-    if (registerError) {
+    if (registerError)
       toast.error(registerError?.data?.message || "Signup failed");
-    }
     if (loginIsSuccess && loginData) {
-      toast.success(loginData.message || "login successful.");
+      toast.success(loginData.message || "Welcome back!");
       navigate("/");
     }
-    if (loginError) {
-      toast.error(loginError?.data?.message || "Login failed");
-    }
+    if (loginError) toast.error(loginError?.data?.message || "Login failed");
   }, [
-    registerIsLoading,
-    loginIsLoading,
+    loginIsSuccess,
+    registerIsSuccess,
     loginData,
     registerData,
     loginError,
@@ -77,134 +62,177 @@ const Login = () => {
 
   const changeInputHandler = (e, type) => {
     const { name, value } = e.target;
-    if (type === "signup") {
-      setSignupInput({ ...signupInput, [name]: value });
-    } else {
-      setLoginInput({ ...loginInput, [name]: value });
-    }
+    if (type === "signup") setSignupInput({ ...signupInput, [name]: value });
+    else setLoginInput({ ...loginInput, [name]: value });
   };
 
   const handleRegistration = async (type) => {
-    const inputData = type === "signup" ? signupInput : loginInput;
-    const action = type === "signup" ? registerUser : loginUser;
-    await action(inputData);
+    await (type === "signup"
+      ? registerUser(signupInput)
+      : loginUser(loginInput));
   };
+
+  const inputClass =
+    "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-black dark:text-white placeholder:text-black/25 dark:placeholder:text-white/20 focus:border-black/30 dark:focus:border-white/30 rounded-xl h-11";
+
+  const LabelEl = ({ children }) => (
+    <Label className="text-black/40 dark:text-white/40 text-xs uppercase tracking-wider">
+      {children}
+    </Label>
+  );
+
   return (
-    <div className="flex items-center w-full justify-center mt-20">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <Tabs defaultValue="login">
-          <TabsList>
-            <TabsTrigger value="signup">Signup</TabsTrigger>
-            <TabsTrigger value="login">Login</TabsTrigger>
-          </TabsList>
-          <TabsContent value="signup">
-            <Card>
-              <CardHeader>
-                <CardTitle>Signup</CardTitle>
-                <CardDescription>
-                  Create a new account and click signup when you're done
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="tabs-demo-name">Name</Label>
-                  <Input
-                    type="text"
-                    name="name"
-                    value={signupInput.name}
-                    onChange={(e) => changeInputHandler(e, "signup")}
-                    placeholder="Eg. Bhanu"
-                    required={true}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="tabs-demo-username">Email</Label>
-                  <Input
-                    type="email"
-                    name="email"
-                    value={signupInput.email}
-                    placeholder="Eg. example@gmail.com"
-                    onChange={(e) => changeInputHandler(e, "signup")}
-                    required={true}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="tabs-demo-username">Password</Label>
-                  <Input
-                    type="password"
-                    name="password"
-                    value={signupInput.password}
-                    onChange={(e) => changeInputHandler(e, "signup")}
-                    placeholder="Eg. example@123"
-                    required={true}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  disabled={registerIsLoading}
-                  onClick={() => handleRegistration("signup")}
-                >
-                  {registerIsLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
-                  ) : (
-                    "register"
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          <TabsContent value="login">
-            <Card>
-              <CardHeader>
-                <CardTitle>Login</CardTitle>
-                <CardDescription>
-                  Login your password here. After signup, you'll be logged in.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="tabs-demo-new">Email</Label>
+    <div className="grid-bg min-h-screen flex items-center justify-center px-4 pt-16">
+      <div className="relative z-10 w-full max-w-md animate-slide-up delay-0">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <div className="w-13 h-13 rounded-2xl bg-black dark:bg-white p-3 animate-pulse-glow">
+            <Zap size={28} className="text-white dark:text-black" />
+          </div>
+          <h1 className="text-2xl font-black text-black dark:text-white tracking-tight">
+            Learnify
+          </h1>
+          <p className="text-black/35 dark:text-white/30 text-sm">
+            Your gateway to expert-led learning
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="glass-card p-1">
+          <Tabs defaultValue="login">
+            <TabsList className="w-full bg-black/[0.04] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 rounded-xl p-1 mb-2">
+              <TabsTrigger
+                value="login"
+                className="flex-1 rounded-lg text-black/40 dark:text-white/40 data-[state=active]:bg-black data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-black transition-all font-semibold"
+              >
+                Login
+              </TabsTrigger>
+              <TabsTrigger
+                value="signup"
+                className="flex-1 rounded-lg text-black/40 dark:text-white/40 data-[state=active]:bg-black data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-black transition-all font-semibold"
+              >
+                Sign Up
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Login */}
+            <TabsContent value="login" className="p-5 space-y-5">
+              <div>
+                <h2 className="text-lg font-bold text-black dark:text-white">
+                  Welcome back
+                </h2>
+                <p className="text-black/30 dark:text-white/30 text-sm">
+                  Sign in to continue learning
+                </p>
+              </div>
+              <div className="divider-text">or continue with email</div>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <LabelEl>Email</LabelEl>
                   <Input
                     type="email"
                     name="email"
                     value={loginInput.email}
                     onChange={(e) => changeInputHandler(e, "login")}
-                    placeholder="Eg. example@gmail.com"
-                    required={true}
+                    placeholder="you@example.com"
+                    className={inputClass}
                   />
                 </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="tabs-demo-new">Password</Label>
+                <div className="space-y-1.5">
+                  <LabelEl>Password</LabelEl>
                   <Input
                     type="password"
                     name="password"
                     value={loginInput.password}
                     onChange={(e) => changeInputHandler(e, "login")}
-                    placeholder="Eg. example@123"
-                    required={true}
+                    placeholder="••••••••"
+                    className={inputClass}
                   />
                 </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  disabled={loginIsLoading}
-                  onClick={() => handleRegistration("login")}
-                >
-                  {loginIsLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
-                  ) : (
-                    "login"
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+              <Button
+                disabled={loginIsLoading}
+                onClick={() => handleRegistration("login")}
+                className="btn-glow w-full h-11 rounded-xl text-sm"
+              >
+                {loginIsLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In →"
+                )}
+              </Button>
+            </TabsContent>
+
+            {/* Signup */}
+            <TabsContent value="signup" className="p-5 space-y-5">
+              <div>
+                <h2 className="text-lg font-bold text-black dark:text-white">
+                  Create an account
+                </h2>
+                <p className="text-black/30 dark:text-white/30 text-sm">
+                  Join thousands of learners today
+                </p>
+              </div>
+              <div className="divider-text">fill in your details</div>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <LabelEl>Name</LabelEl>
+                  <Input
+                    type="text"
+                    name="name"
+                    value={signupInput.name}
+                    onChange={(e) => changeInputHandler(e, "signup")}
+                    placeholder="Your full name"
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <LabelEl>Email</LabelEl>
+                  <Input
+                    type="email"
+                    name="email"
+                    value={signupInput.email}
+                    onChange={(e) => changeInputHandler(e, "signup")}
+                    placeholder="you@example.com"
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <LabelEl>Password</LabelEl>
+                  <Input
+                    type="password"
+                    name="password"
+                    value={signupInput.password}
+                    onChange={(e) => changeInputHandler(e, "signup")}
+                    placeholder="••••••••"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <Button
+                disabled={registerIsLoading}
+                onClick={() => handleRegistration("signup")}
+                className="btn-glow w-full h-11 rounded-xl text-sm"
+              >
+                {registerIsLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account →"
+                )}
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <p className="text-center text-black/20 dark:text-white/15 text-xs mt-6">
+          By continuing you agree to our Terms of Service &amp; Privacy Policy
+        </p>
       </div>
     </div>
   );

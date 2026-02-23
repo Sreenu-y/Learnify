@@ -1,27 +1,48 @@
 import { ChartNoAxesColumn, SquareLibrary } from "lucide-react";
-import React from "react";
 import { Link, Outlet } from "react-router-dom";
+import DarkMode from "@/DarkMode";
 
 const Sidebar = () => {
   return (
-    <div className="flex">
-      <div className="hidden lg:block w-[250px] sm:w-[300px] space-y-8 border-r border-gray-300 dark:border-gray-700 dark:bg-[#141414] bg-[#f0f0f0] p-5 sticky top-0 h-screen">
-        <div className="space-y-4 mt-20">
-          <Link to="dashboard" className="flex items-center gap-2">
-            <ChartNoAxesColumn size={22} />
-            <h1>Dashboard</h1>
-          </Link>
-          <Link to="course" className="flex items-center gap-2">
-            <SquareLibrary size={22} />
-            <h1>Courses</h1>
-          </Link>
+    <div className="flex min-h-screen bg-[var(--background)]">
+      {/* Sidebar panel */}
+      <aside className="hidden lg:flex flex-col w-[250px] sm:w-[280px] border-r border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#0e0e0e] sticky top-0 h-screen pt-20 pb-6 px-5 gap-1">
+        <nav className="flex flex-col gap-1 mt-4">
+          <SideLink
+            to="dashboard"
+            icon={<ChartNoAxesColumn size={18} />}
+            label="Dashboard"
+          />
+          <SideLink
+            to="course"
+            icon={<SquareLibrary size={18} />}
+            label="Courses"
+          />
+        </nav>
+        <div className="mt-auto flex items-center gap-2">
+          <DarkMode />
+          <span className="text-xs text-black/30 dark:text-white/25">
+            Theme
+          </span>
         </div>
-      </div>
-      <div className="flex-1 md:p-24 p-2 bg-white dark:bg-[#141414]">
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 px-6 md:px-10 pt-24 pb-10 bg-[var(--background)] min-h-screen">
         <Outlet />
       </div>
     </div>
   );
 };
+
+const SideLink = ({ to, icon, label }) => (
+  <Link
+    to={to}
+    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-black/60 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+  >
+    <span className="text-black/40 dark:text-white/35">{icon}</span>
+    {label}
+  </Link>
+);
 
 export default Sidebar;

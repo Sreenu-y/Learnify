@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Loader2, Camera } from "lucide-react";
+import { useEffect, useState } from "react";
 import Course from "./Course";
 import {
   useLoadUserQuery,
@@ -37,17 +37,9 @@ const Profile = () => {
     },
   ] = useUpdateUserMutation();
 
-  const onChangeHandler = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfilePhoto(file);
-    }
-  };
-
   useEffect(() => {
     refetch();
   }, []);
-
   useEffect(() => {
     if (isSuccess) {
       toast.success(updateUserData.message || "Profile updated");
@@ -59,7 +51,7 @@ const Profile = () => {
   }, [updateUserData, isError, refetch, error, isSuccess]);
 
   if (isLoading) return <ProfileSkeleton />;
-  const user = data && data.user;
+  const user = data?.user;
 
   const updateUserHandler = async () => {
     const formData = new FormData();
@@ -68,110 +60,127 @@ const Profile = () => {
     await updateUser(formData);
   };
 
+  const Field = ({ label, value }) => (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-black/35 dark:text-white/30">
+        {label}
+      </span>
+      <span className="text-sm font-medium text-black dark:text-white">
+        {value}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="max-w-4xl mx-auto my-24 px-4">
-      <h1 className="font-bold text-2xl text-center md:text-left">Profile</h1>
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 my-5">
-        <div className="flex flex-col items-center">
-          <Avatar className="h-24 w-24 md:h-32 md:w-32 mb-4">
-            <AvatarImage
-              src={user?.photoUrl || "https://github.com/shadcn.png"}
-              alt="@shadcn"
-            />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
-        </div>
-        <div>
-          <div className="mb-2">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-300 dark-gray-100">
-              Name:
-              <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.name}
-              </span>
-            </h1>
-          </div>
-          <div className="mb-2">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-100">
-              Email:
-              <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.email}
-              </span>
-            </h1>
-          </div>
-          <div className="mb-2">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-100">
-              Role :
-              <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.role.toUpperCase()}
-              </span>
-            </h1>
-          </div>
-          <Dialog>
-            <form>
-              <DialogTrigger asChild>
-                <Button size="sm" className="mt-2">
-                  Edit Profile
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Edit profile</DialogTitle>
-                  <DialogDescription>
-                    Make changes to your profile here. Click save when
-                    you&apos;re done.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4">
-                  <div className="grid gap-3">
-                    <Label htmlFor="name-1">Name</Label>
-                    <Input
-                      id="name-1"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      name="name"
-                      placeholder="Name"
-                    />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label>Profile Picture</Label>
-                    <Input
-                      onChange={onChangeHandler}
-                      id="username-1"
-                      type="file"
-                      accept="image/*"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    disabled={updateUserIsLoading}
-                    onClick={updateUserHandler}
-                  >
-                    {updateUserIsLoading ? (
-                      <>
-                        <Loader2 className="mr-1 animate-spin h-4 w-4" /> please
-                        wait
-                      </>
-                    ) : (
-                      "Save changes"
-                    )}
+    <div className="min-h-screen bg-[var(--background)] pt-20 pb-10">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="font-bold text-2xl text-black dark:text-white mb-8">
+          Profile
+        </h1>
+
+        {/* Profile card */}
+        <div className="glass-card p-6 md:p-8 mb-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <Avatar className="h-24 w-24 md:h-32 md:w-32 ring-4 ring-black/10 dark:ring-white/10">
+                <AvatarImage
+                  src={user?.photoUrl || "https://github.com/shadcn.png"}
+                  alt={user?.name}
+                />
+                <AvatarFallback className="bg-black/10 dark:bg-white/10 text-black dark:text-white text-2xl font-bold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+
+            {/* Info */}
+            <div className="flex flex-col gap-4 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Field label="Name" value={user?.name} />
+                <Field label="Email" value={user?.email} />
+                <Field label="Role" value={user?.role?.toUpperCase()} />
+              </div>
+
+              <div className="h-px bg-black/[0.07] dark:bg-white/[0.07]" />
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="btn-glow rounded-xl w-fit text-sm flex items-center gap-2">
+                    <Camera size={14} /> Edit Profile
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </form>
-          </Dialog>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[400px] bg-white dark:bg-[#101010] border border-black/10 dark:border-white/10">
+                  <DialogHeader>
+                    <DialogTitle className="text-black dark:text-white">
+                      Edit Profile
+                    </DialogTitle>
+                    <DialogDescription className="text-black/40 dark:text-white/35">
+                      Update your name or profile picture below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-2">
+                    <div className="grid gap-1.5">
+                      <Label className="text-black/50 dark:text-white/40 text-xs uppercase tracking-wider">
+                        Name
+                      </Label>
+                      <Input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Your name"
+                        className="bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-black dark:text-white rounded-xl h-10"
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label className="text-black/50 dark:text-white/40 text-xs uppercase tracking-wider">
+                        Profile Photo
+                      </Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setProfilePhoto(e.target.files?.[0])}
+                        className="bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-black dark:text-white rounded-xl h-10 file:mr-3 file:text-xs file:font-semibold"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      disabled={updateUserIsLoading}
+                      onClick={updateUserHandler}
+                      className="btn-glow rounded-xl text-sm"
+                    >
+                      {updateUserIsLoading ? (
+                        <>
+                          <Loader2 className="mr-1 animate-spin h-4 w-4" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save changes"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
         </div>
-      </div>
-      <div>
-        <h1 className="font-medium text-lg">Courses you're enrolled in</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-5">
-          {user.enrolledCourses.length === 0 ? (
-            <h1>You haven't enrolled yet</h1>
+
+        {/* Enrolled courses */}
+        <div>
+          <h2 className="font-bold text-lg text-black dark:text-white mb-4">
+            Enrolled Courses
+          </h2>
+          {user?.enrolledCourses?.length === 0 ? (
+            <div className="glass-card p-10 text-center text-black/35 dark:text-white/30">
+              You haven't enrolled in any courses yet.
+            </div>
           ) : (
-            user.enrolledCourses.map((course) => (
-              <Course course={course} key={course._id} />
-            ))
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {user?.enrolledCourses?.map((course) => (
+                <Course course={course} key={course._id} />
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -181,32 +190,21 @@ const Profile = () => {
 
 export default Profile;
 
-const ProfileSkeleton = () => {
-  return (
-    <div className="max-w-4xl mx-auto my-24 px-4">
-      <h1 className="font-bold text-2xl text-center md:text-left">Profile</h1>
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 my-5">
-        {/* Avatar Skeleton */}
-        <Skeleton className="h-24 w-24 md:h-32 md:w-32 rounded-full" />
-
-        {/* Info Skeleton */}
-        <div className="flex-1 space-y-4">
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-6 w-28" />
-          <Skeleton className="h-10 w-32 mt-4" />
-        </div>
-      </div>
-
-      {/* Courses Skeleton */}
-      <div className="mt-10">
-        <h1 className="font-medium text-lg">Courses you're enrolled in</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-5">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-xl" />
-          ))}
+const ProfileSkeleton = () => (
+  <div className="min-h-screen bg-[var(--background)] pt-20 pb-10">
+    <div className="max-w-4xl mx-auto px-4">
+      <Skeleton className="h-8 w-24 mb-8 bg-black/5 dark:bg-white/5" />
+      <div className="glass-card p-8 mb-8">
+        <div className="flex gap-8">
+          <Skeleton className="h-32 w-32 rounded-full bg-black/5 dark:bg-white/5" />
+          <div className="flex-1 space-y-4">
+            <Skeleton className="h-5 w-40 bg-black/5 dark:bg-white/5" />
+            <Skeleton className="h-5 w-56 bg-black/5 dark:bg-white/5" />
+            <Skeleton className="h-5 w-28 bg-black/5 dark:bg-white/5" />
+            <Skeleton className="h-10 w-32 bg-black/5 dark:bg-white/5 rounded-xl" />
+          </div>
         </div>
       </div>
     </div>
-  );
-};
+  </div>
+);

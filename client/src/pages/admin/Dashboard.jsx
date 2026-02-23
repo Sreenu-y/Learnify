@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetAllPurchasedCoursesQuery } from "@/features/api/purchaseApi";
-import React from "react";
 import {
   CartesianGrid,
   Line,
@@ -12,72 +11,87 @@ import {
 } from "recharts";
 
 const Dashboard = () => {
-  const { data, isLoading, isError, isSuccess } =
-    useGetAllPurchasedCoursesQuery();
+  const { data, isLoading, isError } = useGetAllPurchasedCoursesQuery();
 
-  if (isLoading) return <h1>Loading...</h1>;
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-black/40 dark:text-white/30 text-sm">Loading...</p>
+      </div>
+    );
   if (isError)
-    return <h1 className="text-red-500">Failed to get purchased courses.</h1>;
-  const { purchasedCourse } = data || [];
-  const courseData = purchasedCourse.map((course) => ({
-    name: course.courseId.courseTitle,
-    price: course.courseId.coursePrice,
-  }));
+    return (
+      <p className="text-red-500 text-sm">Failed to get purchased courses.</p>
+    );
 
+  const { purchasedCourse } = data || { purchasedCourse: [] };
+  const courseData = purchasedCourse.map((c) => ({
+    name: c.courseId.courseTitle,
+    price: c.courseId.coursePrice,
+  }));
   const totalRevenue = purchasedCourse.reduce(
-    (acc, element) => acc + (element.amount || 0),
-    0
+    (acc, el) => acc + (el.amount || 0),
+    0,
+  );
+  const totalSales = purchasedCourse.length;
+
+  const StatCard = ({ label, value }) => (
+    <div className="glass-card p-6 flex flex-col gap-1">
+      <p className="text-xs font-semibold uppercase tracking-wider text-black/35 dark:text-white/30">
+        {label}
+      </p>
+      <p className="text-3xl font-black text-black dark:text-white">{value}</p>
+    </div>
   );
 
-  const totalSales = purchasedCourse.length;
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader>
-          <CardTitle>Total Sales</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold text-blue-600">{totalSales}</p>
-        </CardContent>
-      </Card>
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader>
-          <CardTitle>Total Revenue</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold text-blue-600">{totalRevenue}</p>
-        </CardContent>
-      </Card>
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-700">
-            Course Prices
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="99%" height={300}>
-            <LineChart data={courseData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis
-                dataKey="name"
-                stroke="#6b7280"
-                angle={-30} // Rotated labels for better visibility
-                textAnchor="end"
-                interval={0} // Display all labels
-              />
-              <YAxis stroke="#6b7280" />
-              <Tooltip formatter={(value, name) => [`₹${value}`, name]} />
-              <Line
-                type="monotone"
-                dataKey="price"
-                stroke="#4a90e2" // Changed color to a different shade of blue
-                strokeWidth={3}
-                dot={{ stroke: "#4a90e2", strokeWidth: 2 }} // Same color for the dot
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <StatCard label="Total Sales" value={totalSales} />
+      <StatCard
+        label="Total Revenue"
+        value={`₹${totalRevenue.toLocaleString()}`}
+      />
+
+      {/* Full-width chart card */}
+      <div className="glass-card p-6 col-span-1 sm:col-span-2 lg:col-span-4">
+        <p className="text-sm font-semibold text-black/60 dark:text-white/50 mb-4 uppercase tracking-wider">
+          Course Prices
+        </p>
+        <ResponsiveContainer width="99%" height={300}>
+          <LineChart data={courseData}>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="rgba(128,128,128,0.15)"
+            />
+            <XAxis
+              dataKey="name"
+              stroke="rgba(128,128,128,0.5)"
+              angle={-25}
+              textAnchor="end"
+              interval={0}
+              tick={{ fontSize: 11 }}
+            />
+            <YAxis stroke="rgba(128,128,128,0.5)" tick={{ fontSize: 11 }} />
+            <Tooltip
+              contentStyle={{
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                borderRadius: "12px",
+                color: "var(--card-foreground)",
+                fontSize: "12px",
+              }}
+              formatter={(value) => [`₹${value}`, "Price"]}
+            />
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke="currentColor"
+              strokeWidth={2}
+              dot={{ r: 4, fill: "var(--foreground)", strokeWidth: 0 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
