@@ -42,7 +42,7 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.FRONTEND_URL}/course-details/${courseId}`, // updated env
+      success_url: `${process.env.FRONTEND_URL}/course-details/${courseId}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/course-details/${courseId}`,
       metadata: {
         courseId: courseId,
@@ -54,7 +54,7 @@ export const createCheckoutSession = async (req, res) => {
     });
 
     if (!session.url) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Error occurred while creating session",
       });
@@ -68,6 +68,9 @@ export const createCheckoutSession = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to create checkout session" });
   }
 };
 
@@ -75,17 +78,12 @@ export const stripeWebhook = async (req, res) => {
   let event;
 
   try {
-    const payloadString = JSON.stringify(req.body, null, 2);
     const secret = process.env.WEBHOOK_ENDPOINT_SECRET;
-
-    const header = stripe.webhooks.generateTestHeaderString({
-      payload: payloadString,
-      secret,
-    });
-
-    event = stripe.webhooks.constructEvent(payloadString, header, secret);
+    const signature = req.headers["stripe-signature"];
+    // req.body is a raw Buffer here because express.raw() is applied on this route
+    event = stripe.webhooks.constructEvent(req.body, signature, secret);
   } catch (error) {
-    console.error("Webhook error:", error.message);
+    console.error("Webhook signature verification failed:", error.message);
     return res.status(400).send(`Webhook error: ${error.message}`);
   }
 
@@ -113,7 +111,7 @@ export const stripeWebhook = async (req, res) => {
       if (purchase.courseId && purchase.courseId.lectures.length > 0) {
         await Lecture.updateMany(
           { _id: { $in: purchase.courseId.lectures } },
-          { $set: { isPreviewFree: true } }
+          { $set: { isPreviewFree: true } },
         );
       }
 
@@ -123,14 +121,14 @@ export const stripeWebhook = async (req, res) => {
       await User.findByIdAndUpdate(
         purchase.userId,
         { $addToSet: { enrolledCourses: purchase.courseId._id } }, // Add course ID to enrolledCourses
-        { new: true }
+        { new: true },
       );
 
       // Update course to add user ID to enrolledStudents
       await Course.findByIdAndUpdate(
         purchase.courseId._id,
         { $addToSet: { enrolledStudents: purchase.userId } }, // Add user ID to enrolledStudents
-        { new: true }
+        { new: true },
       );
     } catch (error) {
       console.error("Error handling event:", error);
@@ -163,6 +161,7 @@ export const getCourseDetailsWithPurchaseDetails = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "Failed to get course details" });
   }
 };
 
@@ -183,5 +182,77 @@ export const getAllPurchasedCourses = async (_, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "Failed to get purchased courses" });
+  }
+};
+
+// Called by the client on the success redirect to fulfill the purchase
+// without relying on the Stripe webhook (which can't reach localhost in dev)
+export const verifyPayment = async (req, res) => {
+  try {
+    const { session_id } = req.query;
+    if (!session_id) {
+      return res.status(400).json({ message: "session_id is required" });
+    }
+
+    // Retrieve the session from Stripe to verify payment status
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+
+    if (session.payment_status !== "paid") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment not completed" });
+    }
+
+    // Find the pending purchase record created when checkout was initiated
+    const purchase = await CoursePurchase.findOne({
+      paymentId: session_id,
+    }).populate("courseId");
+
+    if (!purchase) {
+      return res.status(404).json({ message: "Purchase record not found" });
+    }
+
+    // If already completed, just return success (idempotent)
+    if (purchase.status === "Completed") {
+      return res
+        .status(200)
+        .json({ success: true, message: "Already fulfilled" });
+    }
+
+    // Fulfill the purchase
+    purchase.amount = session.amount_total / 100;
+    purchase.status = "Completed";
+
+    // Unlock all lectures for the purchased course
+    if (purchase.courseId && purchase.courseId.lectures.length > 0) {
+      await Lecture.updateMany(
+        { _id: { $in: purchase.courseId.lectures } },
+        { $set: { isPreviewFree: true } },
+      );
+    }
+
+    await purchase.save();
+
+    // Add course to user's enrolledCourses
+    await User.findByIdAndUpdate(
+      purchase.userId,
+      { $addToSet: { enrolledCourses: purchase.courseId._id } },
+      { new: true },
+    );
+
+    // Add user to course's enrolledStudents
+    await Course.findByIdAndUpdate(
+      purchase.courseId._id,
+      { $addToSet: { enrolledStudents: purchase.userId } },
+      { new: true },
+    );
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Payment verified and course unlocked" });
+  } catch (error) {
+    console.error("verifyPayment error:", error);
+    return res.status(500).json({ message: "Failed to verify payment" });
   }
 };

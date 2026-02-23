@@ -38,6 +38,7 @@ export const getCourseProgress = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "Failed to get course progress" });
   }
 };
 
@@ -59,7 +60,7 @@ export const updateLectureProgress = async (req, res) => {
 
     // find lecture progress in course progress
     const lectureIndex = courseProgress.lectureProgress.findIndex(
-      (lecture) => lecture.lectureId === lectureId
+      (lecture) => lecture.lectureId === lectureId,
     );
 
     if (lectureIndex !== -1) {
@@ -73,7 +74,7 @@ export const updateLectureProgress = async (req, res) => {
     }
 
     const lectureProgressLength = courseProgress.lectureProgress.filter(
-      (lectureProg) => lectureProg.viewed
+      (lectureProg) => lectureProg.viewed,
     ).length;
 
     const course = await Course.findById(courseId);
@@ -89,6 +90,9 @@ export const updateLectureProgress = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Failed to update lecture progress" });
   }
 };
 
@@ -106,7 +110,7 @@ export const markAsCompleted = async (req, res) => {
     }
 
     courseProgress.lectureProgress.map(
-      (lectureProgress) => (lectureProgress.viewed = true)
+      (lectureProgress) => (lectureProgress.viewed = true),
     );
     courseProgress.completed = true;
     await courseProgress.save();
@@ -116,6 +120,9 @@ export const markAsCompleted = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Failed to mark course as completed" });
   }
 };
 
@@ -133,7 +140,7 @@ export const markAsInCompleted = async (req, res) => {
     }
 
     courseProgress.lectureProgress.map(
-      (lectureProgress) => (lectureProgress.viewed = false)
+      (lectureProgress) => (lectureProgress.viewed = false),
     );
     courseProgress.completed = false;
     await courseProgress.save();
@@ -143,5 +150,8 @@ export const markAsInCompleted = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Failed to mark course as incomplete" });
   }
 };

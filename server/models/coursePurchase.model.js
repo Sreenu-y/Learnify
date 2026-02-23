@@ -26,10 +26,10 @@ const coursePurchaseSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const CoursePurchase = mongoose.model(
   "CoursePurchase",
-  coursePurchaseSchema
+  coursePurchaseSchema,
 );

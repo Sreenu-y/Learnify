@@ -135,11 +135,13 @@ export const updateProfile = async (req, res) => {
       deleteMediaFromCloudinary(publicId);
     }
 
-    // upload new photo
-    const cloudResponse = await uploadMedia(profilePhoto.path);
-    const photoUrl = cloudResponse.secure_url;
+    // upload new photo if provided
+    const updatedData = { name };
+    if (profilePhoto) {
+      const cloudResponse = await uploadMedia(profilePhoto.path);
+      updatedData.photoUrl = cloudResponse.secure_url;
+    }
 
-    const updatedData = { name, photoUrl };
     const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
       new: true,
     }).select("-password");

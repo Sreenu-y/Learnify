@@ -69,6 +69,7 @@ export const searchCourse = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "Failed to search courses" });
   }
 };
 
@@ -100,7 +101,7 @@ export const getPublishedCourses = async (_, res) => {
       select: "name photoUrl",
     });
     if (!courses || courses.length === 0) {
-      res.status(404).json({
+      return res.status(404).json({
         courses: [],
         message: "Course not found",
       });
@@ -201,6 +202,9 @@ export const createLecture = async (req, res) => {
 
     const lecture = await Lecture.create({ lectureTitle });
     const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
     if (lecture) {
       course.lectures.push(lecture._id);
       await course.save();
@@ -298,7 +302,7 @@ export const removeLecture = async (req, res) => {
       },
       {
         $pull: { lectures: lectureId },
-      }
+      },
     );
 
     return res.status(200).json({
